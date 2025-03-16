@@ -40,6 +40,36 @@ def fix_logically_missing_values(df):
             "primary": "MasVnrType",
             "related_categorical": [],
             "related_numerical": ["MasVnrArea"]
+        },
+        "Fireplace": {
+            "primary": "Fireplaces",
+            "related_categorical": ["FireplaceQu"],
+            "related_numerical": []
+        },
+        "Pool": {
+            "primary": "PoolArea",
+            "related_categorical": ["PoolQC"],
+            "related_numerical": []
+        },
+        "Fence": {
+            "primary": "Fence",
+            "related_categorical": [],
+            "related_numerical": []
+        },
+        "Alley": {
+            "primary": "Alley",
+            "related_categorical": [],
+            "related_numerical": []
+        },
+        "Miscellaneous": {
+            "primary": "MiscFeature",
+            "related_categorical": [],
+            "related_numerical": ["MiscVal"]
+        },
+        "SecondFloor": {
+            "primary": "2ndFlrSF",
+            "related_categorical": [],
+            "related_numerical": []
         }
     }
 
@@ -48,16 +78,23 @@ def fix_logically_missing_values(df):
         categorical_cols = features["related_categorical"]
         numerical_cols = features["related_numerical"]
 
-        # If the primary feature is missing (indicating absence of the structure), handle its related features
+        # Ensure all columns exist to prevent KeyErrors
+        if primary_col not in df.columns:
+            continue
+
+        # Create a mask for missing primary feature
         missing_mask = df[primary_col].isna()
 
         for col in categorical_cols:
-            df.loc[missing_mask, col] = "Not Available"
+            if col in df.columns:
+                df.loc[missing_mask, col] = "Not Available"
 
         for col in numerical_cols:
-            df.loc[missing_mask, col] = 0
+            if col in df.columns:
+                df.loc[missing_mask, col] = 0
 
     return df
+
 
 def clean_missing_values(df):
     df = df.copy()
