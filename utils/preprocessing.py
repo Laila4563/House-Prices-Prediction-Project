@@ -127,19 +127,30 @@ def look_for_outliers(df):
         
         
 # Function to handle outliers
-def handle_outliers_iqr(df, column):
+def handle_outliers_iqr(df, columns):
     """
     Handle outliers in a DataFrame column using the IQR method.
     - Caps outliers at the lower and upper bounds.
     """
-    Q1 = df[column].quantile(0.25)  # 25th percentile
-    Q3 = df[column].quantile(0.75)  # 75th percentile
-    IQR = Q3 - Q1  # Interquartile range
-    lower_bound = Q1 - 1.5 * IQR  # Lower bound for outliers
-    upper_bound = Q3 + 1.5 * IQR  # Upper bound for outliers
+    
+    df = df.copy()  # Avoid modifying the original data
+    
+    for col in columns:
+        Q1 = df[col].quantile(0.25)  
+        Q3 = df[col].quantile(0.75)  
+        IQR = Q3 - Q1  
+        lower_bound = Q1 - 1.5 * IQR  
+        upper_bound = Q3 + 1.5 * IQR  
 
-    # Cap outliers at the lower and upper bounds
-    df[column] = np.where(df[column] < lower_bound, lower_bound, df[column])
-    df[column] = np.where(df[column] > upper_bound, upper_bound, df[column])
+        # Count outliers before capping
+        num_outliers = ((df[col] < lower_bound) | (df[col] > upper_bound)).sum()
+
+        # Print information
+        print(f"Feature: {col}, Outliers Detected: {num_outliers}")
+        print(f" - Lower Bound: {lower_bound:.2f}, Upper Bound: {upper_bound:.2f}\n")
+
+        # Cap outliers at the bounds
+        df[col] = np.where(df[col] < lower_bound, lower_bound, df[col])
+        df[col] = np.where(df[col] > upper_bound, upper_bound, df[col])
 
     return df
