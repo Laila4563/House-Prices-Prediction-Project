@@ -51,26 +51,11 @@ def fix_logically_missing_values(df):
             "related_categorical": ["PoolQC"],
             "related_numerical": []
         },
-        "Fence": {
-            "primary": "Fence",
-            "related_categorical": [],
-            "related_numerical": []
-        },
-        "Alley": {
-            "primary": "Alley",
-            "related_categorical": [],
-            "related_numerical": []
-        },
         "Miscellaneous": {
             "primary": "MiscFeature",
             "related_categorical": [],
             "related_numerical": ["MiscVal"]
         },
-        "SecondFloor": {
-            "primary": "2ndFlrSF",
-            "related_categorical": [],
-            "related_numerical": []
-        }
     }
 
     for key, features in feature_groups.items():
@@ -96,16 +81,33 @@ def fix_logically_missing_values(df):
     return df
 
 
-def clean_missing_values(df):
+
+def handle_categorical_missing_values(df):
     df = df.copy()
 
-    # Handle categorical columns
+    # Replace "None" and "NA" with "Not Available"
     for col in df.select_dtypes(include=['object']).columns:
-        df.loc[:, col] = df[col].replace(["None", "NA", np.nan], "Not Available")
+        df.loc[:, col] = df[col].replace(["None", "NA"], "Not Available")
+        
+        # Calculate the percentage of NaN values
+        missing_percentage = df[col].isna().mean() * 100
+        
+        if missing_percentage > 50:
+            print(f"Dropping column '{col}' due to {missing_percentage:.2f}% missing values.")
+            df.drop(columns=[col], inplace=True)
+        elif missing_percentage > 0:
+            mode_value = df[col].mode()[0]  # Get the most frequent value
+            print(f"Filling missing values in '{col}' with mode: {mode_value}")
+            df.loc[:, col] = df[col].fillna(mode_value)
 
-    # Handle numerical columns
+    return df
+
+def handle_numerical_missing_values(df):
+    df = df.copy()
+
+    # Handle missing values in numerical columns
     for col in df.select_dtypes(include=['number']).columns:
-        missing_percentage = df[col].isna().mean() * 100  #missing values' percentages
+        missing_percentage = df[col].isna().mean() * 100
 
         if missing_percentage > 50:
             print(f"Dropping column '{col}' due to {missing_percentage:.2f}% missing values.")
@@ -115,6 +117,11 @@ def clean_missing_values(df):
             print(f"Filling missing values in '{col}' with median: {median_value}")
             df.loc[:, col] = df[col].fillna(median_value)
 
+    return df
+
+def clean_missing_values(df):
+    df = handle_categorical_missing_values(df)
+    df = handle_numerical_missing_values(df)
     return df
 
 
