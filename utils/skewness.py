@@ -2,6 +2,8 @@ import numpy as np
 import pandas as pd
 from scipy.stats import skew
 from sklearn.preprocessing import QuantileTransformer, PowerTransformer
+import seaborn as sns
+import matplotlib.pyplot as plt
 
 def treat_skewness(df, continuous_features, skew_threshold=0.5, mild_threshold=1.0, moderate_threshold=2.0):
     df = df.copy()
@@ -70,3 +72,40 @@ def treat_skewness(df, continuous_features, skew_threshold=0.5, mild_threshold=1
         print(f"{feature} transformed using {transformation_type}")
 
     return df, skewed_features, transformation_details
+
+
+def compare_skewness(df, treated_df, skewed_features):
+    """
+    Compare the original and transformed distributions for each skewed feature.
+    
+    Parameters:
+        df (pd.DataFrame): The original dataframe before transformation.
+        treated_df (pd.DataFrame): The dataframe after skewness treatment.
+        skewed_features (list): List of feature names to compare.
+
+    Returns:
+        None
+    """
+    for feature in skewed_features:
+        original_skewness = skew(df[feature])
+        transformed_skewness = skew(treated_df[feature])
+
+        print("-" * 40)
+        print(f"Feature: {feature}")
+        print(f"  Original Skewness: {original_skewness:.2f}")
+        print(f"  Transformed Skewness: {transformed_skewness:.2f}")
+        print("-" * 40)
+
+        # Visualize the change in distribution
+        plt.figure(figsize=(12, 5))
+
+        plt.subplot(1, 2, 1)
+        sns.histplot(df[feature], kde=True, color="skyblue")
+        plt.title(f"Original: {feature}", fontsize=12)
+
+        plt.subplot(1, 2, 2)
+        sns.histplot(treated_df[feature], kde=True, color="salmon")
+        plt.title(f"Transformed: {feature}", fontsize=12)
+
+        plt.tight_layout()
+        plt.show()
