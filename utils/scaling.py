@@ -1,7 +1,6 @@
 import pandas as pd
 from sklearn.preprocessing import StandardScaler, MinMaxScaler, RobustScaler
 from scipy.stats import shapiro
-import numpy as np
 import matplotlib.pyplot as plt
 import scipy.stats as stats
 import seaborn as sns
@@ -17,7 +16,7 @@ def is_normally_distributed(data, alpha=0.05):
     skew_val = data.skew()
     kurtosis_val = data.kurtosis()
 
-    if len(data) > 500:  # Large dataset: use skewness & kurtosis
+    if len(data) > 500:
         return abs(skew_val) < 0.5 and abs(kurtosis_val) < 3.5
 
     stat, p_value = shapiro(data.dropna())
